@@ -1,17 +1,19 @@
-# Operaciones básicas
-a = 10 + 5 * 2;
-mostrar(a);
+# Ejemplo de Regresión y Matrices
+X = [[1]; [2]; [3]; [4]];
+Y = [[2]; [4]; [6]; [8]];
 
-# Matrices: Suma y Multiplicación
-m1 = [[1, 2]; [3, 4]];
-m2 = [[5, 6]; [7, 8]];
-m3 = m1 + m2;
-mostrar(m3);
+# Operación de matriz
+X_T = transpuesta(X);
+mostrar("Transpuesta de X:");
+mostrar(X_T);
 
-# Preparando datos para una mini red
-X = [[0,0]; [0,1]; [1,0]; [1,1]];
-Y = [[0]; [1]; [1]; [0]]; # XOR Problem
+# Predicción con Perceptrón
+pred = perceptron(X, Y);
+mostrar("Resultado Perceptrón:");
+mostrar(pred);
 
-prediccion = perceptron(X, Y);
-mostrar("Predicciones de la Red:");
-mostrar(prediccion);
+# Condicional
+si (1 == 1) {
+    mostrar("Lógica de control funcionando");
+    graficar(X, Y);
+}
