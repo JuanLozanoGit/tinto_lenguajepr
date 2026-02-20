@@ -4,13 +4,12 @@ import pandas as pd
 import os
 import sys
 
-# Forzar que encuentre los archivos generados si no están en el path
+# Soporte para encontrar archivos de ANTLR
 sys.path.append(os.path.join(os.path.dirname(__file__), 'antlr_gen'))
 
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier
 
-# Importación única y segura
 try:
     from TintoVisitor import TintoVisitor
     from TintoParser import TintoParser
@@ -21,120 +20,90 @@ except ImportError:
 class TintoInterpreter(TintoVisitor):
     def __init__(self):
         super().__init__()
-        # Diccionario de variables (memoria del lenguaje)
-        self.variables = {
-            "PI": np.pi,
-            "E": np.e
-        }
+        self.variables = {"PI": np.pi, "E": np.e}
 
-    # --- Puntos de Entrada ---
     def visitProgram(self, ctx: TintoParser.ProgramContext):
-        results = []
         for stmt in ctx.statement():
-            results.append(self.visit(stmt))
-        return results
+            self.visit(stmt)
 
-    # --- Estructuras de Control ---
+    # --- Manejo de Bloques (Crucial para If/While) ---
+    def visitBlock(self, ctx: TintoParser.BlockContext):
+        last_val = None
+        for stmt in ctx.statement():
+            last_val = self.visit(stmt)
+        return last_val
+
     def visitIfStatement(self, ctx: TintoParser.IfStatementContext):
         condition = self.visit(ctx.expr())
         if condition:
-            for stmt in ctx.statement()[:1]: # Ejecuta bloque IF
-                self.visit(stmt)
-        elif ctx.statement(1): # Si existe bloque SINO
-            self.visit(ctx.statement(1))
+            return self.visit(ctx.block(0))
+        elif ctx.block(1):
+            return self.visit(ctx.block(1))
 
     def visitWhileStatement(self, ctx: TintoParser.WhileStatementContext):
         while self.visit(ctx.expr()):
-            for stmt in ctx.statement():
-                self.visit(stmt)
+            self.visit(ctx.block())
 
-    # --- Expresiones y Aritmética ---
+    # --- Expresiones ---
     def visitAssignment(self, ctx: TintoParser.AssignmentContext):
         name = ctx.ID().getText()
         value = self.visit(ctx.expr())
         self.variables[name] = value
         return value
 
-    def visitNumber(self, ctx: TintoParser.NumberContext):
-        return float(ctx.NUMBER().getText())
-
-    def visitString(self, ctx: TintoParser.StringContext):
-        return ctx.STRING().getText().strip('"')
-
-    def visitVariable(self, ctx: TintoParser.VariableContext):
-        name = ctx.ID().getText()
-        if name in self.variables:
-            return self.variables[name]
-        print(f"Error: Variable '{name}' no definida.")
-        return 0
-
     def visitSumaResta(self, ctx: TintoParser.SumaRestaContext):
-        l = self.visit(ctx.expr(0))
-        r = self.visit(ctx.expr(1))
+        l, r = self.visit(ctx.expr(0)), self.visit(ctx.expr(1))
         return l + r if ctx.op.text == '+' else l - r
 
     def visitMultiplicacionDiv(self, ctx: TintoParser.MultiplicacionDivContext):
-        l = self.visit(ctx.expr(0))
-        r = self.visit(ctx.expr(1))
+        l, r = self.visit(ctx.expr(0)), self.visit(ctx.expr(1))
         if ctx.op.text == '*':
-            # Soporte nativo para multiplicación de matrices (dot product)
-            if isinstance(l, np.ndarray) or isinstance(r, np.ndarray):
-                return np.dot(l, r)
+            if isinstance(l, np.ndarray) and isinstance(r, np.ndarray):
+                return np.matmul(l, r) # Multiplicación matricial correcta
             return l * r
-        return l / r
+        if ctx.op.text == '/': return l / r
+        return l % r
 
-    def visitPotencia(self, ctx: TintoParser.PotenciaContext):
-        base = self.visit(ctx.expr(0))
-        exp = self.visit(ctx.expr(1))
-        return np.power(base, exp)
-
-    # --- Matrices ---
     def visitMatrizLiteral(self, ctx: TintoParser.MatrizLiteralContext):
         return np.array([self.visit(row) for row in ctx.row()])
 
-    def visitRow(self, ctx: TintoParser.RowContext):
-        return [self.visit(e) for e in ctx.expr()]
-
-    # --- Deep Learning y Funciones ---
+    # --- Funciones Especiales y Deep Learning ---
     def visitLlamadaFuncion(self, ctx: TintoParser.LlamadaFuncionContext):
         func = ctx.ID().getText()
         args = [self.visit(a) for a in ctx.argList().expr()] if ctx.argList() else []
 
-        # Operaciones Matemáticas
+        # Matemáticas y Matrices
+        if func == "raiz": return np.sqrt(args[0])
         if func == "seno": return np.sin(args[0])
         if func == "coseno": return np.cos(args[0])
-        if func == "raiz": return np.sqrt(args[0])
-        
+        if func == "transpuesta": return np.transpose(args[0])
+        if func == "inversa": return np.linalg.inv(args[0])
+
         # Archivos
-        if func == "leer": 
-            return pd.read_csv(args[0]).values
+        if func == "leer": return pd.read_csv(args[0]).values
+        if func == "escribir": 
+            pd.DataFrame(args[1]).to_csv(args[0], index=False)
+            return True
+
+        # Deep Learning / ML
+        if func == "regresion_lineal":
+            model = LinearRegression().fit(args[0], args[1])
+            return model.predict(args[0])
         
-        # Aprendizaje Profundo
-        if func == "regresion":
-            X, y = np.array(args[0]), np.array(args[1])
-            model = LinearRegression().fit(X, y)
-            return model.predict(X)
-            
+        if func == "regresion_logistica":
+            model = LogisticRegression().fit(args[0], args[1].ravel())
+            return model.predict(args[0])
+
         if func == "perceptron":
-            X, y = np.array(args[0]), np.array(args[1])
-            # Perceptrón Multicapa (MLP)
             mlp = MLPClassifier(hidden_layer_sizes=(10, 5), max_iter=1000)
-            mlp.fit(X, y.ravel())
-            return mlp.predict(X)
-            
+            mlp.fit(args[0], args[1].ravel())
+            return mlp.predict(args[0])
+
         return None
 
-    # --- Salida Visual ---
     def visitPrintStatement(self, ctx: TintoParser.PrintStatementContext):
-        val = self.visit(ctx.expr())
-        print(f"☕ TINTO > {val}")
+        print(f"☕ TINTO > {self.visit(ctx.expr())}")
 
     def visitGraphStatement(self, ctx: TintoParser.GraphStatementContext):
-        x = self.visit(ctx.expr(0))
-        y = self.visit(ctx.expr(1))
-        plt.figure(figsize=(8,5))
-        plt.plot(x, y, 'o-', color='brown', label='Datos TINTO')
-        plt.title("Gráfica de Red Neuronal / Datos")
-        plt.grid(True)
-        plt.legend()
+        plt.plot(self.visit(ctx.expr(0)), self.visit(ctx.expr(1)), 'o-')
         plt.show()
