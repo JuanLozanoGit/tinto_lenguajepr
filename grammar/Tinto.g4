@@ -13,16 +13,16 @@ statement: assignment
 
 assignment: ID '=' expr ';';
 
-ifStatement: 'si' '(' expr ')' '{' statement+ '}' ('sino' '{' statement+ '}')?;
+// Se definen bloques claros para el Visitor
+ifStatement: 'si' '(' expr ')' '{' block '}' ('sino' '{' block '}')?;
+whileStatement: 'mientras' '(' expr ')' '{' block '}';
+forStatement: 'para' ID 'en' expr '..' expr '{' block '}';
 
-whileStatement: 'mientras' '(' expr ')' '{' statement+ '}';
+block: statement+;
 
-forStatement: 'para' ID 'en' expr '..' expr '{' statement+ '}';
-
-functionDecl: 'definir' ID '(' params? ')' '{' statement+ 'retornar' expr ';' '}';
+functionDecl: 'definir' ID '(' params? ')' '{' block 'retornar' expr ';' '}';
 
 printStatement: 'mostrar' '(' expr ')' ';';
-
 graphStatement: 'graficar' '(' expr ',' expr ')' ';';
 
 params: ID (',' ID)*;
