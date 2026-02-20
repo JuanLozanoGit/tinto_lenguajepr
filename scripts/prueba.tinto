@@ -1,19 +1,30 @@
-# Ejemplo de Regresión y Matrices
-X = [[1]; [2]; [3]; [4]];
-Y = [[2]; [4]; [6]; [8]];
+# 1. Aritmética y Matrices
+a = (10 + 5) * 2 ^ 2;
+mostrar("Resultado Aritmética:");
+mostrar(a);
 
-# Operación de matriz
-X_T = transpuesta(X);
-mostrar("Transpuesta de X:");
-mostrar(X_T);
+m1 = [[1, 2]; [3, 4]];
+m1_inv = inversa(m1);
+mostrar("Inversa de M1:");
+mostrar(m1_inv);
 
-# Predicción con Perceptrón
-pred = perceptron(X, Y);
-mostrar("Resultado Perceptrón:");
-mostrar(pred);
+# 2. Manejo de Datos (Simulando carga de archivo)
+# datos = leer("dataset.csv"); 
 
-# Condicional
-si (1 == 1) {
-    mostrar("Lógica de control funcionando");
-    graficar(X, Y);
+# 3. Deep Learning: Clasificador Perceptrón (Problema XOR)
+X = [[0,0]; [0,1]; [1,0]; [1,1]];
+Y = [[0]; [1]; [1]; [0]];
+
+mostrar("Entrenando Red Neuronal para XOR...");
+predicciones = perceptron(X, Y);
+
+mostrar("Resultado de Predicción:");
+mostrar(predicciones);
+
+# 4. Control y Gráficas
+si (a > 50) {
+    mostrar("El valor de 'a' es alto, generando gráfica...");
+    graficar(X, predicciones);
+} sino {
+    mostrar("Cerrando proceso.");
 }
