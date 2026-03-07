@@ -1,30 +1,112 @@
-# 1. Aritmética y Matrices
-a = (10 + 5) * 2 ^ 2;
-mostrar("Resultado Aritmética:");
-mostrar(a);
+// ==================================================
+// PRUEBA COMPLETA DEL LENGUAJE TINTO
+// ==================================================
 
-m1 = [[1, 2]; [3, 4]];
-m1_inv = inversa(m1);
-mostrar("Inversa de M1:");
-mostrar(m1_inv);
+// ----- OPERACIONES ARITMÉTICAS BÁSICAS -----
+a = 10;
+b = 3;
+suma = a + b;
+resta = a - b;
+multi = a * b;
+div = a / b;
+mod = a % b;
+pot = a ^ 2;
+raiz = sqrt(16);   // también puedes usar raiz(16)
 
-# 2. Manejo de Datos (Simulando carga de archivo)
-# datos = leer("dataset.csv"); 
+print("===== ARITMÉTICA =====");
+print("  suma:", suma);
+print("  resta:", resta);
+print("  multiplicación:", multi);
+print("  división:", div);
+print("  módulo:", mod);
+print("  potencia:", pot);
+print("  raíz cuadrada:", raiz);
 
-# 3. Deep Learning: Clasificador Perceptrón (Problema XOR)
-X = [[0,0]; [0,1]; [1,0]; [1,1]];
-Y = [[0]; [1]; [1]; [0]];
+// ----- MATRICES -----
+m1 = [1,2;3,4];
+m2 = [5,6;7,8];
+m_suma = m1 + m2;
+m_multi = m1 * m2;          // producto matricial
+m_trans = transpose(m1);
+m_inv = inverse(m1);
 
-mostrar("Entrenando Red Neuronal para XOR...");
-predicciones = perceptron(X, Y);
+print("\n===== MATRICES =====");
+print("  m1:", m1);
+print("  m2:", m2);
+print("  suma:", m_suma);
+print("  multiplicación matricial:", m_multi);
+print("  transpuesta:", m_trans);
+print("  inversa (aprox):", m_inv);
 
-mostrar("Resultado de Predicción:");
-mostrar(predicciones);
-
-# 4. Control y Gráficas
-si (a > 50) {
-    mostrar("El valor de 'a' es alto, generando gráfica...");
-    graficar(X, predicciones);
-} sino {
-    mostrar("Cerrando proceso.");
+// ----- CONDICIONALES -----
+x = 5;
+print("\n===== CONDICIONAL =====");
+if (x > 3) {
+    print("  x es mayor que 3");
+} else {
+    print("  x no es mayor que 3");
 }
+
+// ----- BUCLES -----
+print("\n===== BUCLE FOR =====");
+for i = 1 to 5 {
+    print("  i =", i);
+}
+
+print("\n===== BUCLE WHILE =====");
+j = 0;
+while (j < 3) {
+    print("  j =", j);
+    j = j + 1;
+}
+
+// ----- FUNCIONES MATEMÁTICAS -----
+angulo = 30 * PI / 180;   // 30 grados a radianes
+print("\n===== FUNCIONES MATEMÁTICAS =====");
+print("  seno(30°):", sin(angulo));
+print("  coseno(30°):", cos(angulo));
+print("  tangente(30°):", tan(angulo));
+print("  logaritmo natural de 2:", log(2));
+
+// ----- GRÁFICAS (opcional, abre una ventana) -----
+// datos_x = [1,2,3,4,5];
+// datos_y = [2,4,5,7,8];
+// plot(datos_x, datos_y);   // descomentar para ver gráfico
+
+// ----- LECTURA/ESCRITURA DE ARCHIVOS (opcional) -----
+// Crear datos de ejemplo
+datos = [1,2;3,4;5,6];
+// escribir(datos, "salida.csv");   // guarda en CSV
+// leidos = leer("salida.csv");
+// print("Datos leídos:", leidos);
+
+// ----- REGRESIÓN LINEAL -----
+X = [1,2,3,4,5];
+Y = [2,4,5,7,8];
+modelo_lineal = linearRegression(X, Y);
+prediccion_lineal = predecir(modelo_lineal, [6]);
+print("\n===== REGRESIÓN LINEAL =====");
+print("  Predicción para X=6:", prediccion_lineal);
+
+// ----- REGRESIÓN LOGÍSTICA (ejemplo simple) -----
+X_log = [1,2,3,4,5,6];
+Y_log = [0,0,0,1,1,1];
+modelo_log = logisticRegression(X_log, Y_log);
+pred_log = predecir(modelo_log, [2.5]);
+print("\n===== REGRESIÓN LOGÍSTICA =====");
+print("  Probabilidad para X=2.5:", pred_log);
+
+// ----- PERCEPTRÓN MULTICAPA (XOR) -----
+X_xor = [0,0; 0,1; 1,0; 1,1];
+Y_xor = [0,1,1,0];
+clf = perceptron(X_xor, Y_xor, [4,2]);   // dos capas ocultas de 4 y 2 neuronas
+print("\n===== PERCEPTRÓN MULTICAPA =====");
+print("  Predicción XOR para [0,0]:", predecir(clf, [0,0]));
+print("  Predicción XOR para [0,1]:", predecir(clf, [0,1]));
+print("  Predicción XOR para [1,0]:", predecir(clf, [1,0]));
+print("  Predicción XOR para [1,1]:", predecir(clf, [1,1]));
+
+// ----- USO DE CONSTANTES -----
+print("\n===== CONSTANTES =====");
+print("  PI:", PI);
+print("  E:", E);
