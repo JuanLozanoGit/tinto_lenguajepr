@@ -104,13 +104,3 @@ si (presupuesto >= precio_tinto) {
 } sino {
     decir("No me alcanza ni para el aroma.")
 }
-
-🤝 Créditos
-Este proyecto es una muestra de creatividad y pasión por las ciencias de la computación.
- * Autor: Juan Lozano
- * Inspiración: La cultura cafetera y el amor por los lenguajes de programación.
-> "Programar es como hacer un buen tinto: requiere paciencia, técnica y un poquito de amor."
-> 
-
-¿Te gustaría que le añada alguna sección sobre cómo funcionan las expresiones regulares en el Lexer o prefieres dejarlo así de sencillo?
-
