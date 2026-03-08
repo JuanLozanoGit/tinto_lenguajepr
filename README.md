@@ -3,8 +3,6 @@
 
 ![Python](https://img.shields.io/badge/Language-Python-blue?style=for-the-badge&logo=python)
 ![Status](https://img.shields.io/badge/Status-En%20Desarrollo-orange?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
 **Tinto** es un lenguaje de programación de juguete (*esolang*) con alma colombiana. Creado para transformar la lógica técnica en expresiones cercanas a nuestra cultura, permitiendo que programar sea tan natural como pedir un tinto en la esquina.
 
 ---
