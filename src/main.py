@@ -26,24 +26,24 @@ def main(path_script):
 
     try:
         # 1. Flujo de lectura
-        input_stream = FileStream(path_script, encoding='utf-8') [cite: 1]
+        input_stream = FileStream(path_script, encoding='utf-8')
         
         # 2. Análisis Léxico
         lexer = TintoLexer.TintoLexer(input_stream)
         stream = CommonTokenStream(lexer)
         
         # 3. Análisis Sintáctico
-        parser = TintoParser.TintoParser(stream) [cite: 1]
-        tree = parser.program() [cite: 1]
+        parser = TintoParser.TintoParser(stream)
+        tree = parser.program()
         
         # Verificar si hubo errores de sintaxis antes de ejecutar
         if parser.getNumberOfSyntaxErrors() > 0:
-            print(f"❌ Se encontraron {parser.getNumberOfSyntaxErrors()} errores sintácticos.")
+            print(f" Se encontraron {parser.getNumberOfSyntaxErrors()} errores sintácticos.")
             return
 
         # 4. Ejecución con el Visitor
         visitor = TintoInterpreter()
-        visitor.visit(tree) [cite: 1]
+        visitor.visit(tree)
         
     except Exception as e:
         print(f"Error durante la ejecución: {e}")
