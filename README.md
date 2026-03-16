@@ -251,33 +251,3 @@ El lenguaje **Tinto** incluye las siguientes características:
 * sintaxis simple orientada a aprendizaje
 * implementación basada en **ANTLR4**
 
----
-
-# Propósito educativo
-
-Este proyecto fue desarrollado con fines académicos para demostrar:
-
-* construcción de un **lenguaje de programación**
-* uso de **ANTLR para crear parsers**
-* implementación de un **intérprete en Python**
-* análisis léxico y sintáctico
-
-El sistema permite comprender cómo funcionan los compiladores e intérpretes a nivel básico.
-
----
-
-# Posibles mejoras futuras
-
-Algunas extensiones posibles del lenguaje incluyen:
-
-* estructuras de control (`if`, `while`)
-* funciones
-* manejo de tipos de datos
-* sistema de impresión más avanzado
-* manejo de errores sintácticos
-
----
-
-# Autor
-
-Proyecto académico desarrollado como ejercicio de construcción de lenguajes de programación utilizando **Python** y **ANTLR4**.
