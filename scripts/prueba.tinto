@@ -1,44 +1,19 @@
-// ==================================================
-// PRUEBA COMPLETA DEL LENGUAJE TINTO
-// ==================================================
+print("BÁSICAS");
+a=10; b=3; c=5;
+print(a+b);
+print(a-b);
+print(a*b);
+print(a/b);
+print(a%b);
+print(a^2);
 
-// ----- OPERACIONES ARITMÉTICAS BÁSICAS -----
-a = 10;
-b = 3;
-suma = a + b;
-resta = a - b;
-multi = a * b;
-div = a / b;
-mod = a % b;
-pot = a ^ 2;
-raiz = sqrt(16);   // también puedes usar raiz(16)
+print("TRIGONOMETRÍA");
+p=3.14159;
+print(sin(p/2));
+print(cos(p/2));
+print(tan(p/4));
 
-print("===== ARITMÉTICA =====");
-print("  suma:", suma);
-print("  resta:", resta);
-print("  multiplicación:", multi);
-print("  división:", div);
-print("  módulo:", mod);
-print("  potencia:", pot);
-print("  raíz cuadrada:", raiz);
-
-// ----- CONDICIONALES -----
-x = 5;
-print("\n===== CONDICIONAL =====");
-if (x > 3) {
-    print("  x es mayor que 3");
-} else {
-    print("  x no es mayor que 3");
-}
-
-
-
-// ----- FUNCIONES MATEMÁTICAS -----
-angulo = 30 * PI / 180;   // 30 grados a radianes
-print("\n===== FUNCIONES MATEMÁTICAS =====");
-print("  seno(30°):", sin(angulo));
-print("  coseno(30°):", cos(angulo));
-print("  tangente(30°):", tan(angulo));
-print("  logaritmo natural de 2:", log(2));
-
-
+print("COMBINADAS");
+print(sin(p/4)+cos(p/4));
+print(a*b + sin(p/2));
+print((a+b)^2);
