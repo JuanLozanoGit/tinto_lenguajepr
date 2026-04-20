@@ -28,26 +28,26 @@ returnStatement: 'return' expr ;
 printStatement: 'print' '(' (expr (',' expr)*)? ')' ;
 plotStatement: 'plot' '(' expr (',' expr)? ')' ;
 
-expr: <assoc=right> expr '^' expr          # potencia
-    | expr op=('*'|'/'|'%') expr           # mulDivMod
-    | expr op=('+'|'-') expr               # sumaResta
-    | expr op=('=='|'!='|'<'|'>'|'<='|'>=') expr # comparacion
-    | '!' expr                              # not
-    | expr '&&' expr                        # and
-    | expr '||' expr                        # or
-    | '(' expr ')'                          # parentesis
-    | ('sin' | 'cos' | 'tan' | 'sqrt' | 'log') '(' expr ')' # funcMat
-    | 'transpose' '(' expr ')'               # transpuesta
-    | 'inverse' '(' expr ')'                  # inversa
-    | 'linearRegression' '(' expr ',' expr ')' # regLineal
-    | 'logisticRegression' '(' expr ',' expr ')' # regLogistica
-    | 'perceptron' '(' expr ',' expr ',' expr ')' # perceptron
-    | matrix                                 # matriz
-    | functionCall                            # llamadaFuncion
-    | NUMBER                                  # numero
-    | BOOLEAN                                  # booleano
-    | STRING                                   # cadena
-    | ID                                       # variable
+expr: <assoc=right> expr '^' expr                # Potencia
+    | expr op=('*'|'/'|'%') expr                 # MulDivMod
+    | expr op=('+'|'-') expr                     # SumaResta
+    | expr op=('=='|'!='|'<'|'>'|'<='|'>=') expr # Comparacion
+    | '!' expr                                   # Not
+    | expr '&&' expr                             # And
+    | expr '||' expr                             # Or
+    | '(' expr ')'                               # Parentesis
+    | ('sin' | 'cos' | 'tan' | 'sqrt' | 'log') '(' expr ')' # FuncMat
+    | 'transpose' '(' expr ')'                   # Transpuesta
+    | 'inverse' '(' expr ')'                     # Inversa
+    | 'linearRegression' '(' expr ',' expr ')'   # RegLineal
+    | 'logisticRegression' '(' expr ',' expr ')' # RegLogistica
+    | 'perceptron' '(' expr ',' expr ',' expr ')'# Perceptron
+    | matrix                                     # Matriz
+    | functionCall                               # LlamadaFuncion
+    | NUMBER                                     # Numero
+    | BOOLEAN                                    # Booleano
+    | STRING                                     # Cadena
+    | ID                                         # Variable
     ;
 
 matrix: '[' fila (';' fila)* ']' ;
