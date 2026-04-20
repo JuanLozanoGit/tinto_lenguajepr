@@ -1,39 +1,49 @@
-import sys
-import os
-
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'antlr_gen'))
-
-from antlr4 import *
-
-
-try:
-    from antlr_gen.TintoVisitor import TintoVisitor
-    from antlr_gen.TintoParser import TintoParser
-    from antlr_gen.TintoLexer import TintoLexer
-except ImportError:
-    from TintoVisitor import TintoVisitor
-    from TintoParser import TintoParser
-    from TintoLexer import TintoLexer
-
-
-
 class TintoInterpreter(TintoVisitor):
     def __init__(self):
         super().__init__()
-        # El visitor ya tiene sus propias variables y funciones
-        # Solo necesitamos inicializar si es necesario
-        pass
+        # Tabla de símbolos para guardar valores
+        self.variables = {}
 
-    def main(self, archivo):
-        try:
-            input_stream = FileStream(archivo, encoding='utf-8')
-        except Exception as e:
-            print(f"Error al abrir archivo: {e}")
-            return
+    # --- Lógica de Control de Flujo ---
 
-        lexer = TintoLexer(input_stream)
-        stream = CommonTokenStream(lexer)
+    def visitIf_stat(self, ctx):
+        # Evaluar la condición
+        condition = self.visit(ctx.expr())
+        
+        if condition:
+            self.visit(ctx.block(0))
+        elif ctx.else_block: # Si existe una segunda cláusula block (else)
+            self.visit(ctx.block(1))
+
+    def visitWhile_stat(self, ctx):
+        # Ejecutar mientras la condición sea verdadera
+        while self.visit(ctx.expr()):
+            self.visit(ctx.block())
+
+    # --- Lógica de Evaluación de Expresiones ---
+
+    def visitComparison(self, ctx):
+        left = self.visit(ctx.expr(0))
+        right = self.visit(ctx.expr(1))
+        op = ctx.getChild(1).getText()
+        
+        if op == '==': return left == right
+        if op == '!=': return left != right
+        if op == '>':  return left > right
+        if op == '<':  return left < right
+        return False
+
+    def visitNumber(self, ctx):
+        return int(ctx.getText())
+
+    def visitID(self, ctx):
+        return self.variables.get(ctx.getText(), 0)
+
+    # --- Lógica de Bloques ---
+    
+    def visitBlock(self, ctx):
+        for stmt in ctx.statement():
+            self.visit(stmt)
         parser = TintoParser(stream)
 
         try:
