@@ -1,4 +1,4 @@
-    import sys
+import sys
 import os
 from antlr4 import *
 
