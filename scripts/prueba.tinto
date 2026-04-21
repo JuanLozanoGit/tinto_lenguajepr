@@ -1,19 +1,102 @@
-print("BÁSICAS");
-a=10; b=3; c=5;
-print(a+b);
-print(a-b);
-print(a*b);
-print(a/b);
-print(a%b);
-print(a^2);
+print("=== 1. RECURSIVIDAD ===");
+func factorial(n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+print("Factorial de 5:");
+print(factorial(5));
 
-print("TRIGONOMETRÍA");
-p=3.14159;
-print(sin(p/2));
-print(cos(p/2));
-print(tan(p/4));
+func fibonacci(n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n-1) + fibonacci(n-2);
+    }
+}
+print("Fibonacci de 6:");
+print(fibonacci(6));
 
-print("COMBINADAS");
-print(sin(p/4)+cos(p/4));
-print(a*b + sin(p/2));
-print((a+b)^2);
+print("\n=== 2. CICLOS Y CONDICIONALES ===");
+print("Números pares del 1 al 10:");
+for i = 1 to 10 {
+    if (i % 2 == 0) {
+        print(i);
+    }
+}
+
+print("Cuenta regresiva desde 5:");
+contador = 5;
+while (contador > 0) {
+    print(contador);
+    contador = contador - 1;
+}
+
+print("\n=== 3. LISTAS ===");
+lista = [10, 20, 30, 40];
+print("Lista original:");
+print(lista);
+print("Acceso al índice 2:");
+print(lista[2]);
+print("Modificar índice 1:");
+lista[1] = 99;
+print(lista);
+print("Recorrer lista con for:");
+for i = 0 to 3 {
+    print("Elemento", i, ":", lista[i]);
+}
+
+print("\n=== 4. DICCIONARIOS ===");
+persona = {"nombre": "Carlos", "edad": 28, "ciudad": "Bogotá"};
+print("Diccionario original:");
+print(persona);
+print("Acceder a 'nombre':");
+print(persona["nombre"]);
+print("Agregar nueva clave:");
+persona["profesion"] = "Ingeniero";
+print(persona);
+print("Recorrer claves con for (simulado):");
+claves = ["nombre", "edad", "ciudad", "profesion"];
+for i = 0 to 3 {
+    clave = claves[i];
+    print(clave, ":", persona[clave]);
+}
+
+print("\n=== 5. PILAS ===");
+pila = stack();
+print("Pila vacía:", isEmpty(pila));
+push(pila, 10);
+push(pila, 20);
+push(pila, 30);
+print("Tamaño de la pila:", size(pila));
+print("Top de la pila:", top(pila));
+print("Pop:", pop(pila));
+print("Nuevo top:", top(pila));
+print("¿Está vacía?", isEmpty(pila));
+
+print("\n=== 6. MATRICES ===");
+matriz = [1,2;3,4];
+print("Matriz 2x2:");
+print(matriz);
+print("Elemento en fila 1, columna 1 (0‑based):", matriz[1][1]);
+print("Primera fila:", matriz[0]);
+col1 = matriz[0][1];
+col2 = matriz[1][1];
+print("Segunda columna:", [col1, col2]);
+
+print("\n=== 7. FUNCIONES MATEMÁTICAS (en grados) ===");
+print("sin(30):", sin(30));
+print("cos(60):", cos(60));
+print("tan(45):", tan(45));
+print("sqrt(16):", sqrt(16));
+print("log(2.71828):", log(2.71828));
+
+print("\n=== 9. FUNCIÓN DEFINIDA POR EL USUARIO ===");
+func cuadrado(x) {
+    return x * x;
+}
+print("Cuadrado de 7:", cuadrado(7));
+
+print("\n=== FIN DEL PROGRAMA ===");
