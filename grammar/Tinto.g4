@@ -1,7 +1,15 @@
 grammar Tinto;
 
-program: statement+ EOF;
+// --- Programa Principal ---
+program: (functionDeclaration | statement)* EOF;
 
+// --- Funciones ---
+functionDeclaration: FUNC ID '(' parameters? ')' bloque;
+
+parameters: parameter (',' parameter)*;
+parameter : type ID;
+
+// --- Sentencias ---
 statement: variableDeclaration ';'
          | ifStatement
          | whileStatement
@@ -18,16 +26,17 @@ variableDeclaration: type? ID '=' expr ;
 type: 'int' | 'float' | 'bool' | 'string' | 'matrix';
 assignment: ID '=' expr ;
 
-ifStatement: 'if' '(' expr ')' bloque ('else' bloque)? ;
-whileStatement: 'while' '(' expr ')' bloque ;
-forStatement: 'for' ID '=' expr 'to' expr bloque ;
+ifStatement: IF '(' expr ')' bloque (ELSE bloque)? ;
+whileStatement: WHILE '(' expr ')' bloque ;
+forStatement: FOR ID '=' expr TO expr bloque ;
 
 bloque: '{' statement* '}' ;
 
-returnStatement: 'return' expr ;
-printStatement: 'print' '(' (expr (',' expr)*)? ')' ;
-plotStatement: 'plot' '(' expr (',' expr)? ')' ;
+returnStatement: RETURN expr ;
+printStatement: PRINT '(' (expr (',' expr)*)? ')' ;
+plotStatement: PLOT '(' expr (',' expr)? ')' ;
 
+// --- Expresiones ---
 expr: <assoc=right> expr '^' expr                # Potencia
     | expr op=('*'|'/'|'%') expr                 # MulDivMod
     | expr op=('+'|'-') expr                     # SumaResta
@@ -55,9 +64,21 @@ fila: expr (',' expr)* ;
 
 functionCall: ID '(' (expr (',' expr)*)? ')' ;
 
+// --- Tokens (Lexer) ---
+FUNC   : 'func';
+IF     : 'if';
+ELSE   : 'else';
+WHILE  : 'while';
+FOR    : 'for';
+TO     : 'to';
+RETURN : 'return';
+PRINT  : 'print';
+PLOT   : 'plot';
+
 NUMBER: [0-9]+ ('.' [0-9]+)? ;
 BOOLEAN: 'true' | 'false' ;
 STRING: '"' (~["\r\n])* '"' ;
 ID: [a-zA-Z_][a-zA-Z0-9_]* ;
+
 WS: [ \t\r\n]+ -> skip ;
 COMMENT: '//' ~[\r\n]* -> skip ;
