@@ -1,16 +1,9 @@
 grammar Tinto;
 
-// --- Programa Principal ---
-program: (functionDeclaration | statement)* EOF;
+program: statement+ EOF;
 
-// --- Funciones ---
-functionDeclaration: FUNC ID '(' parameters? ')' bloque;
-
-parameters: parameter (',' parameter)*;
-parameter : type ID;
-
-// --- Sentencias ---
-statement: variableDeclaration ';'
+statement: functionDeclaration
+         | variableDeclaration ';'
          | ifStatement
          | whileStatement
          | forStatement
@@ -26,17 +19,25 @@ variableDeclaration: type? ID '=' expr ;
 type: 'int' | 'float' | 'bool' | 'string' | 'matrix';
 assignment: ID '=' expr ;
 
-ifStatement: IF '(' expr ')' bloque (ELSE bloque)? ;
-whileStatement: WHILE '(' expr ')' bloque ;
-forStatement: FOR ID '=' expr TO expr bloque ;
+ifStatement: 'if' '(' expr ')' bloque ('else' bloque)? ;
+whileStatement: 'while' '(' expr ')' bloque ;
+forStatement: 'for' ID '=' expr 'to' expr bloque ;
 
 bloque: '{' statement* '}' ;
 
-returnStatement: RETURN expr ;
-printStatement: PRINT '(' (expr (',' expr)*)? ')' ;
-plotStatement: PLOT '(' expr (',' expr)? ')' ;
+returnStatement: 'return' expr ;
+printStatement: 'print' '(' (expr (',' expr)*)? ')' ;
+plotStatement: 'plot' '(' expr (',' expr)? ')' ;
 
-// --- Expresiones ---
+functionDeclaration
+    : FUNC ID '(' parameters? ')' bloque
+    ;
+
+parameters
+    : ID (',' ID)*
+    ;
+// ------------------------
+
 expr: <assoc=right> expr '^' expr                # Potencia
     | expr op=('*'|'/'|'%') expr                 # MulDivMod
     | expr op=('+'|'-') expr                     # SumaResta
@@ -63,22 +64,10 @@ matrix: '[' fila (';' fila)* ']' ;
 fila: expr (',' expr)* ;
 
 functionCall: ID '(' (expr (',' expr)*)? ')' ;
-
-// --- Tokens (Lexer) ---
-FUNC   : 'func';
-IF     : 'if';
-ELSE   : 'else';
-WHILE  : 'while';
-FOR    : 'for';
-TO     : 'to';
-RETURN : 'return';
-PRINT  : 'print';
-PLOT   : 'plot';
-
+FUNC: 'func';
 NUMBER: [0-9]+ ('.' [0-9]+)? ;
 BOOLEAN: 'true' | 'false' ;
 STRING: '"' (~["\r\n])* '"' ;
 ID: [a-zA-Z_][a-zA-Z0-9_]* ;
-
 WS: [ \t\r\n]+ -> skip ;
 COMMENT: '//' ~[\r\n]* -> skip ;
