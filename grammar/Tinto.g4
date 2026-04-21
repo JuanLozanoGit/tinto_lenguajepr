@@ -9,15 +9,17 @@ statement: functionDeclaration
          | forStatement
          | returnStatement ';'
          | assignment ';'
+         | assignmentIndexed ';'          // lista[índice] = valor  o  dict[clave] = valor
          | printStatement ';'
          | plotStatement ';'
          | functionCall ';'
          | expr ';'
          ;
 
-variableDeclaration: type? ID '=' expr ;
-type: 'int' | 'float' | 'bool' | 'string' | 'matrix';
+variableDeclaration: tipo? ID '=' expr ;
+tipo: 'int' | 'float' | 'bool' | 'string' | 'matrix' | 'stack';   // se añadió 'stack'
 assignment: ID '=' expr ;
+assignmentIndexed: ID '[' expr ']' '=' expr ;
 
 ifStatement: 'if' '(' expr ')' bloque ('else' bloque)? ;
 whileStatement: 'while' '(' expr ')' bloque ;
@@ -36,9 +38,10 @@ functionDeclaration
 parameters
     : ID (',' ID)*
     ;
-// ------------------------
 
+// ------------------------
 expr: <assoc=right> expr '^' expr                # Potencia
+    | expr '[' expr ']'                          # Indexacion
     | expr op=('*'|'/'|'%') expr                 # MulDivMod
     | expr op=('+'|'-') expr                     # SumaResta
     | expr op=('=='|'!='|'<'|'>'|'<='|'>=') expr # Comparacion
@@ -52,6 +55,9 @@ expr: <assoc=right> expr '^' expr                # Potencia
     | 'linearRegression' '(' expr ',' expr ')'   # RegLineal
     | 'logisticRegression' '(' expr ',' expr ')' # RegLogistica
     | 'perceptron' '(' expr ',' expr ',' expr ')'# Perceptron
+    | 'stack' '(' ')'                            # StackCreation
+    | lista                                      # ListaLiteral
+    | diccionario                                # DiccionarioLiteral
     | matrix                                     # Matriz
     | functionCall                               # LlamadaFuncion
     | NUMBER                                     # Numero
@@ -60,10 +66,15 @@ expr: <assoc=right> expr '^' expr                # Potencia
     | ID                                         # Variable
     ;
 
+// Listas y diccionarios
+lista: '[' (expr (',' expr)*)? ']' ;
+diccionario: '{' (expr ':' expr (',' expr ':' expr)*)? '}' ;
+
 matrix: '[' fila (';' fila)* ']' ;
 fila: expr (',' expr)* ;
 
 functionCall: ID '(' (expr (',' expr)*)? ')' ;
+
 FUNC: 'func';
 NUMBER: [0-9]+ ('.' [0-9]+)? ;
 BOOLEAN: 'true' | 'false' ;
