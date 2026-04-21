@@ -1,11 +1,6 @@
-import sys
+    import sys
 import os
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 from antlr4 import *
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.neural_network import MLPClassifier
 
 # Importar ANTLR
 sys.path.append(os.path.join(os.path.dirname(__file__), 'antlr_gen'))
@@ -13,11 +8,22 @@ from antlr_gen.TintoLexer import TintoLexer
 from antlr_gen.TintoParser import TintoParser
 from antlr_gen.TintoVisitor import TintoVisitor
 
+
+class ReturnException(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
 class TintoInterpreter(TintoVisitor):
     def __init__(self):
         super().__init__()
-        self.globals = {"PI": np.pi, "E": np.e}
+        self.globals = {"PI": 3.141592653589793, "E": 2.718281828459045}
         self.scopes = [self.globals]
+        self.functions = {}
+
+        #  NUEVO RECURSIVO
+        self.memo = {}
+        self.max_depth = 1000
 
     def current_scope(self):
         return self.scopes[-1]
@@ -28,10 +34,8 @@ class TintoInterpreter(TintoVisitor):
             self.visit(stmt)
 
     def visitBloque(self, ctx):
-        self.scopes.append({}) # Entrar a nuevo scope
         for stmt in ctx.statement():
             self.visit(stmt)
-        self.scopes.pop() # Salir de scope
 
     # --- Variables ---
     def visitVariableDeclaration(self, ctx):
@@ -43,7 +47,6 @@ class TintoInterpreter(TintoVisitor):
     def visitAssignment(self, ctx):
         name = ctx.ID().getText()
         value = self.visit(ctx.expr())
-        # Buscar en qué scope existe la variable para actualizarla
         for scope in reversed(self.scopes):
             if name in scope:
                 scope[name] = value
@@ -73,20 +76,25 @@ class TintoInterpreter(TintoVisitor):
         var = ctx.ID().getText()
         start = self.visit(ctx.expr(0))
         end = self.visit(ctx.expr(1))
-        # Ciclo simple
         for i in range(int(start), int(end) + 1):
             self.current_scope()[var] = i
             self.visit(ctx.bloque())
 
+    def visitReturnStatement(self, ctx):
+        value = self.visit(ctx.expr())
+        raise ReturnException(value)
+
     # --- Operaciones ---
     def visitPotencia(self, ctx):
-        return np.power(self.visit(ctx.expr(0)), self.visit(ctx.expr(1)))
+        return self.visit(ctx.expr(0)) ** self.visit(ctx.expr(1))
 
     def visitMulDivMod(self, ctx):
         l, r = self.visit(ctx.expr(0)), self.visit(ctx.expr(1))
         op = ctx.op.text
-        if op == '*': return l @ r if isinstance(l, np.ndarray) else l * r
-        if op == '/': return l / r
+        if op == '*':
+            return l * r
+        if op == '/':
+            return l / r
         return l % r
 
     def visitSumaResta(self, ctx):
@@ -96,51 +104,88 @@ class TintoInterpreter(TintoVisitor):
     def visitComparacion(self, ctx):
         l, r = self.visit(ctx.expr(0)), self.visit(ctx.expr(1))
         op = ctx.op.text
-        ops = {'==': lambda a,b: a==b, '!=': lambda a,b: a!=b, '<': lambda a,b: a<b, '>': lambda a,b: a>b, '<=': lambda a,b: a<=b, '>=': lambda a,b: a>=b}
+        ops = {
+            '==': lambda a, b: a == b,
+            '!=': lambda a, b: a != b,
+            '<': lambda a, b: a < b,
+            '>': lambda a, b: a > b,
+            '<=': lambda a, b: a <= b,
+            '>=': lambda a, b: a >= b
+        }
         return ops[op](l, r)
 
-    # --- Funciones y IO ---
+    # --- Funciones ---
+    def visitFunctionDeclaration(self, ctx):
+        name = ctx.ID().getText()
+        params = []
+        if ctx.parameters():
+            params = [p.getText() for p in ctx.parameters().ID()]
+        self.functions[name] = {
+            "params": params,
+            "body": ctx.bloque()
+        }
+
+    def visitFunctionCall(self, ctx):
+        name = ctx.ID().getText()
+
+        if name not in self.functions:
+            raise Exception(f"Función {name} no definida")
+
+        func = self.functions[name]
+
+        args = []
+        if ctx.expr():
+            args = [self.visit(e) for e in ctx.expr()]
+
+        if len(args) != len(func["params"]):
+            raise Exception("Número incorrecto de argumentos")
+
+        #  Memoización
+        key = (name, tuple(args))
+        if key in self.memo:
+            return self.memo[key]
+
+        #  Límite de recursión
+        if len(self.scopes) > self.max_depth:
+            raise Exception("Límite de recursión alcanzado")
+
+        # Crear scope
+        self.scopes.append({})
+
+        for param, arg in zip(func["params"], args):
+            self.current_scope()[param] = arg
+
+        try:
+            self.visit(func["body"])
+            result = None
+        except ReturnException as r:
+            result = r.value
+
+        self.scopes.pop()
+
+        # Guardar en memo
+        self.memo[key] = result
+
+        return result
+
+    # --- IO ---
     def visitPrintStatement(self, ctx):
         args = [str(self.visit(e)) for e in ctx.expr()]
         print("TINTO >", " ".join(args))
 
-    def visitPlotStatement(self, ctx):
-        if len(ctx.expr()) == 2:
-            plt.scatter(self.visit(ctx.expr(0)), self.visit(ctx.expr(1)))
-        else:
-            plt.plot(self.visit(ctx.expr(0)))
-        plt.show()
-
     # --- Literales ---
-    def visitNumero(self, ctx): return float(ctx.NUMBER().getText())
-    def visitBooleano(self, ctx): return ctx.BOOLEAN().getText() == 'true'
-    def visitCadena(self, ctx): return ctx.STRING().getText().strip('"')
+    def visitNumero(self, ctx):
+        return float(ctx.NUMBER().getText())
 
-def main():
-    if len(sys.argv) < 2:
-        print("Uso: python interpreter.py <archivo.tinto>")
-        return
-    
-    lexer = TintoLexer(FileStream(sys.argv[1], encoding='utf-8'))
-    stream = CommonTokenStream(lexer)
-    parser = TintoParser(stream)
-    tree = parser.program()
-    
-    interpreter = TintoInterpreter()
-    interpreter.visit(tree)
+    def visitBooleano(self, ctx):
+        return ctx.BOOLEAN().getText() == 'true'
 
-if __name__ == '__main__':
-    main()
-        return int(ctx.getText())
+    def visitCadena(self, ctx):
+        return ctx.STRING().getText().strip('"')
 
-    def visitID(self, ctx):
-        return self.variables.get(ctx.getText(), 0)
-
-    # --- Lógica de Bloques ---
-    
-    def visitBlock(self, ctx):
-        for stmt in ctx.statement():
-            self.visit(stmt)
+    def main(self, input_file):
+        lexer = TintoLexer(FileStream(input_file, encoding='utf-8'))
+        stream = CommonTokenStream(lexer)
         parser = TintoParser(stream)
 
         try:
@@ -161,7 +206,7 @@ def main():
     if len(sys.argv) < 2:
         print("Uso: python interpreter.py <archivo.tinto>")
         sys.exit(1)
-    
+
     input_file = sys.argv[1]
     interpreter = TintoInterpreter()
     interpreter.main(input_file)
