@@ -1,0 +1,17 @@
+print("===== ARCHIVOS TXT EN TINTO =====");
+
+crear("hola.txt");
+
+escribir("hola.txt", "Hola desde TINTO\n");
+
+agregar("hola.txt", "Segunda linea\n");
+
+agregar("hola.txt", "Tercera linea\n");
+
+contenido = leer("hola.txt");
+
+print("Contenido del archivo:");
+
+print(contenido);
+
+print("===== FIN =====");
