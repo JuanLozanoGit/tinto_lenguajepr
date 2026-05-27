@@ -3,17 +3,19 @@ import os
 from antlr4 import *
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'antlr_gen', 'grammar'))
+
 from TintoLexer import TintoLexer
 from TintoParser import TintoParser
 from TintoVisitor import TintoVisitor
 
+from tinto_ia import *
 
 class ReturnException(Exception):
+
     def __init__(self, value):
         self.value = value
 
 
-# ---------- PILA ----------
 class Stack:
 
     def __init__(self):
@@ -46,7 +48,6 @@ class Stack:
         return f"stack({self._data})"
 
 
-# ---------- INTERPRETER ----------
 class TintoInterpreter(TintoVisitor):
 
     def __init__(self):
@@ -68,7 +69,30 @@ class TintoInterpreter(TintoVisitor):
             "crear": self.crear_archivo,
             "escribir": self.escribir_archivo,
             "agregar": self.agregar_archivo,
-            "leer": self.leer_archivo
+            "leer": self.leer_archivo,
+
+            "linearRegression": tinto_linearRegression,
+            "logisticRegression": tinto_logisticRegression,
+            "perceptron": tinto_perceptron,
+            "kNN": tinto_kNN,
+            "kMeans": tinto_kMeans,
+
+            "normalizar": tinto_normalizar,
+            "errorCuadratico": tinto_errorCuadratico,
+            "accuracy": tinto_accuracy,
+
+            "crearRed": tinto_crearRed,
+            "entrenar": tinto_entrenar,
+            "predecir": tinto_predecir,
+
+            "relu": tinto_relu,
+            "sigmoid": tinto_sigmoid,
+            "tanhAct": tinto_tanh,
+
+            "sentimiento": tinto_sentimiento,
+            "predecirSerie": tinto_predecirSerie,
+            "similitud": tinto_similitud,
+            "clasificarNumero": tinto_clasificarNumero
         }
 
         self.scopes = [self.globals]
@@ -77,10 +101,11 @@ class TintoInterpreter(TintoVisitor):
         self.max_depth = 1000
 
     def current_scope(self):
-
         return self.scopes[-1]
 
-    # ---------- ARCHIVOS TXT ----------
+    # =========================================================
+    # ARCHIVOS TXT
+    # =========================================================
 
     def crear_archivo(self, nombre):
 
@@ -108,7 +133,9 @@ class TintoInterpreter(TintoVisitor):
         with open(nombre, "r", encoding="utf-8") as f:
             return f.read()
 
-    # ---------- FUNCIONES MATEMÁTICAS ----------
+    # =========================================================
+    # FUNCIONES MATEMÁTICAS
+    # =========================================================
 
     def factorial(self, n):
 
@@ -127,7 +154,6 @@ class TintoInterpreter(TintoVisitor):
         for n in range(10):
 
             signo = -1 if n % 2 else 1
-
             res += signo * (x ** (2 * n + 1)) / self.factorial(2 * n + 1)
 
         return res
@@ -140,7 +166,6 @@ class TintoInterpreter(TintoVisitor):
         for n in range(10):
 
             signo = -1 if n % 2 else 1
-
             res += signo * (x ** (2 * n)) / self.factorial(2 * n)
 
         return res
@@ -179,12 +204,13 @@ class TintoInterpreter(TintoVisitor):
         for _ in range(20):
 
             ex = self.globals["E"] ** x
-
             x = x - (ex - n) / ex
 
         return x
 
-    # ---------- EVALUAR EXPRESIÓN ----------
+    # =========================================================
+    # PARSER AUXILIAR
+    # =========================================================
 
     def _eval_expr(self, text):
 
@@ -192,8 +218,6 @@ class TintoInterpreter(TintoVisitor):
         parser = TintoParser(CommonTokenStream(lexer))
 
         return self.visit(parser.expr())
-
-    # ---------- SPLIT EXTERNO ----------
 
     def _split_outer(self, text, sep, start, end):
 
@@ -226,7 +250,9 @@ class TintoInterpreter(TintoVisitor):
 
         return parts
 
-    # ---------- LISTAS ----------
+    # =========================================================
+    # LISTAS / DICCIONARIOS
+    # =========================================================
 
     def visitListaLiteral(self, ctx):
 
@@ -239,8 +265,6 @@ class TintoInterpreter(TintoVisitor):
             self._eval_expr(elem)
             for elem in self._split_outer(inner, ',', '[', ']')
         ]
-
-    # ---------- DICCIONARIOS ----------
 
     def visitDiccionarioLiteral(self, ctx):
 
@@ -262,8 +286,6 @@ class TintoInterpreter(TintoVisitor):
 
         return d
 
-    # ---------- MATRICES ----------
-
     def visitMatriz(self, ctx):
 
         inner = ctx.getText()[1:-1].strip()
@@ -282,11 +304,9 @@ class TintoInterpreter(TintoVisitor):
 
         return matriz
 
-    def visitStackCreation(self, ctx):
-
-        return Stack()
-
-    # ---------- PROGRAMA ----------
+    # =========================================================
+    # BLOQUES
+    # =========================================================
 
     def visitProgram(self, ctx):
 
@@ -298,12 +318,13 @@ class TintoInterpreter(TintoVisitor):
         for stmt in ctx.statement():
             self.visit(stmt)
 
-    # ---------- VARIABLES ----------
+    # =========================================================
+    # VARIABLES
+    # =========================================================
 
     def visitVariableDeclaration(self, ctx):
 
         name = ctx.ID().getText()
-
         value = self.visit(ctx.expr())
 
         self.current_scope()[name] = value
@@ -313,7 +334,6 @@ class TintoInterpreter(TintoVisitor):
     def visitAssignment(self, ctx):
 
         name = ctx.ID().getText()
-
         value = self.visit(ctx.expr())
 
         for scope in reversed(self.scopes):
@@ -321,54 +341,9 @@ class TintoInterpreter(TintoVisitor):
             if name in scope:
 
                 scope[name] = value
-
                 return value
 
         self.current_scope()[name] = value
-
-        return value
-
-    def visitAssignmentIndexed(self, ctx):
-
-        name = ctx.ID().getText()
-
-        obj = None
-
-        for scope in reversed(self.scopes):
-
-            if name in scope:
-
-                obj = scope[name]
-
-                break
-
-        if obj is None:
-            raise NameError(f"Variable '{name}' no definida")
-
-        index = self.visit(ctx.expr(0))
-
-        value = self.visit(ctx.expr(1))
-
-        if isinstance(index, float) and index.is_integer():
-            index = int(index)
-
-        if isinstance(obj, list):
-
-            if not isinstance(index, int):
-                raise TypeError("Índice debe ser entero")
-
-            while len(obj) <= index:
-                obj.append(None)
-
-            obj[index] = value
-
-        elif isinstance(obj, dict):
-
-            obj[index] = value
-
-        else:
-
-            raise TypeError(f"Tipo {type(obj)} no soporta indexación")
 
         return value
 
@@ -383,7 +358,9 @@ class TintoInterpreter(TintoVisitor):
 
         raise NameError(f"Variable '{name}' no definida")
 
-    # ---------- CONTROL ----------
+    # =========================================================
+    # CONTROL
+    # =========================================================
 
     def visitIfStatement(self, ctx):
 
@@ -406,20 +383,68 @@ class TintoInterpreter(TintoVisitor):
         var = ctx.ID().getText()
 
         start = int(self.visit(ctx.expr(0)))
-
         end = int(self.visit(ctx.expr(1)))
 
         for i in range(start, end + 1):
 
             self.current_scope()[var] = i
-
             self.visit(ctx.bloque())
 
     def visitReturnStatement(self, ctx):
 
         raise ReturnException(self.visit(ctx.expr()))
+    
+    def visitIndexacion(self, ctx):
 
-    # ---------- OPERADORES ----------
+        lista = self.visit(ctx.expr(0))
+        indice = self.visit(ctx.expr(1))
+
+        if not isinstance(lista, list):
+            raise Exception("Intentando indexar algo que no es una lista")
+
+        indice = int(indice)
+
+        if indice < 0 or indice >= len(lista):
+            raise Exception("Índice fuera de rango")
+
+        return lista[indice]
+
+
+    def visitAssignmentIndexed(self, ctx):
+
+        nombre = ctx.ID().getText()
+
+        indice = int(self.visit(ctx.expr(0)))
+        valor = self.visit(ctx.expr(1))
+
+        lista = None
+
+    # Buscar la variable desde el scope interno hacia afuera
+        for scope in reversed(self.scopes):
+
+            if nombre in scope:
+                lista = scope[nombre]
+                break
+
+        if lista is None:
+            raise Exception(f"Variable '{nombre}' no definida")
+
+        if not isinstance(lista, list):
+            raise Exception(f"{nombre} no es una lista")
+
+        if indice < 0 or indice >= len(lista):
+            raise Exception("Índice fuera de rango")
+
+        lista[indice] = valor
+
+        return valor
+    # =========================================================
+    # OPERADORES
+    # =========================================================
+
+    def visitNegativo(self, ctx):
+
+        return -self.visit(ctx.expr())
 
     def visitPotencia(self, ctx):
 
@@ -458,6 +483,7 @@ class TintoInterpreter(TintoVisitor):
         op = ctx.op.text
 
         ops = {
+
             '==': lambda a, b: a == b,
             '!=': lambda a, b: a != b,
             '<': lambda a, b: a < b,
@@ -484,64 +510,9 @@ class TintoInterpreter(TintoVisitor):
 
         return self.visit(ctx.expr(0)) or self.visit(ctx.expr(1))
 
-    # ---------- INDEXACIÓN ----------
-
-    def visitIndexacion(self, ctx):
-
-        obj = self.visit(ctx.expr(0))
-
-        index = self.visit(ctx.expr(1))
-
-        if isinstance(index, float) and index.is_integer():
-            index = int(index)
-
-        if isinstance(obj, list):
-
-            if not isinstance(index, int):
-                raise TypeError("Índice debe ser entero")
-
-            if index < 0 or index >= len(obj):
-                raise IndexError(f"Índice {index} fuera de rango")
-
-            return obj[index]
-
-        elif isinstance(obj, dict):
-
-            if index not in obj:
-                raise KeyError(f"Clave '{index}' no encontrada")
-
-            return obj[index]
-
-        else:
-
-            raise TypeError(f"Tipo {type(obj)} no soporta indexación")
-
-    # ---------- FUNCIONES MAT ----------
-
-    def visitFuncMat(self, ctx):
-
-        nombre = ctx.getChild(0).getText()
-
-        valor = self.visit(ctx.expr())
-
-        if nombre == "sin":
-            return self.seno(valor)
-
-        if nombre == "cos":
-            return self.coseno(valor)
-
-        if nombre == "tan":
-            return self.tangente(valor)
-
-        if nombre == "sqrt":
-            return self.raiz(valor)
-
-        if nombre == "log":
-            return self.logaritmo(valor)
-
-        raise Exception("Función matemática no válida")
-
-    # ---------- FUNCIONES USUARIO ----------
+    # =========================================================
+    # FUNCIONES
+    # =========================================================
 
     def visitFunctionDeclaration(self, ctx):
 
@@ -553,6 +524,7 @@ class TintoInterpreter(TintoVisitor):
             params = [p.getText() for p in ctx.parameters().ID()]
 
         self.functions[name] = {
+
             "params": params,
             "body": ctx.bloque()
         }
@@ -563,12 +535,12 @@ class TintoInterpreter(TintoVisitor):
 
         args = [self.visit(e) for e in ctx.expr()]
 
-        # funciones internas
+    # FUNCIONES NATIVAS / GLOBALES
         if name in self.globals and callable(self.globals[name]):
 
             return self.globals[name](*args)
 
-        # funciones usuario
+    # FUNCIONES DEL USUARIO
         if name not in self.functions:
 
             raise Exception(f"Función '{name}' no definida")
@@ -579,28 +551,6 @@ class TintoInterpreter(TintoVisitor):
 
             raise Exception("Número incorrecto de argumentos")
 
-        try:
-
-            key = (
-                name,
-                tuple(
-                    tuple(a) if isinstance(a, list) else a
-                    for a in args
-                )
-            )
-
-            if key in self.memo:
-
-                return self.memo[key]
-
-        except:
-
-            key = None
-
-        if len(self.scopes) > self.max_depth:
-
-            raise Exception("Límite de recursión")
-
         self.scopes.append({})
 
         for p, a in zip(func["params"], args):
@@ -610,7 +560,6 @@ class TintoInterpreter(TintoVisitor):
         try:
 
             self.visit(func["body"])
-
             result = None
 
         except ReturnException as r:
@@ -619,13 +568,11 @@ class TintoInterpreter(TintoVisitor):
 
         self.scopes.pop()
 
-        if key is not None:
-
-            self.memo[key] = result
-
         return result
 
-    # ---------- PRINT ----------
+    # =========================================================
+    # PRINT
+    # =========================================================
 
     def visitPrintStatement(self, ctx):
 
@@ -652,8 +599,96 @@ class TintoInterpreter(TintoVisitor):
             "TINTO >",
             " ".join(to_str(self.visit(e)) for e in ctx.expr())
         )
+        # ---------- Inteligencia Artificial ----------
 
-    # ---------- LITERALES ----------
+    def visitRegLineal(self, ctx):
+        X = self.visit(ctx.expr(0))
+        Y = self.visit(ctx.expr(1))
+        return self.globals["linearRegression"](X, Y)
+
+    def visitRegLogistica(self, ctx):
+        X = self.visit(ctx.expr(0))
+        Y = self.visit(ctx.expr(1))
+        return self.globals["logisticRegression"](X, Y)
+
+    def visitPerceptron(self, ctx):
+        X = self.visit(ctx.expr(0))
+        Y = self.visit(ctx.expr(1))
+        epocas = self.visit(ctx.expr(2))
+        return self.globals["perceptron"](X, Y, epocas)
+
+    def visitKNN(self, ctx):
+        X = self.visit(ctx.expr(0))
+        Y = self.visit(ctx.expr(1))
+        k = self.visit(ctx.expr(2))
+        return self.globals["kNN"](X, Y, k)
+
+    def visitKMeans(self, ctx):
+        datos = self.visit(ctx.expr(0))
+        k = self.visit(ctx.expr(1))
+        return self.globals["kMeans"](datos, k)
+
+    def visitNormalizar(self, ctx):
+        datos = self.visit(ctx.expr())
+        return self.globals["normalizar"](datos)
+
+    def visitErrorCuadratico(self, ctx):
+        real = self.visit(ctx.expr(0))
+        pred = self.visit(ctx.expr(1))
+        return self.globals["errorCuadratico"](real, pred)
+
+    def visitAccuracy(self, ctx):
+        real = self.visit(ctx.expr(0))
+        pred = self.visit(ctx.expr(1))
+        return self.globals["accuracy"](real, pred)
+
+    def visitCrearRed(self, ctx):
+        capas = self.visit(ctx.expr())
+        return self.globals["crearRed"](capas)
+
+    def visitEntrenar(self, ctx):
+        red = self.visit(ctx.expr(0))
+        X = self.visit(ctx.expr(1))
+        Y = self.visit(ctx.expr(2))
+        epocas = self.visit(ctx.expr(3))
+        return self.globals["entrenar"](red, X, Y, epocas)
+
+    def visitPredecir(self, ctx):
+        modelo = self.visit(ctx.expr(0))
+        x = self.visit(ctx.expr(1))
+        return self.globals["predecir"](modelo, x)
+
+    def visitRelu(self, ctx):
+        x = self.visit(ctx.expr())
+        return self.globals["relu"](x)
+
+    def visitSigmoid(self, ctx):
+        x = self.visit(ctx.expr())
+        return self.globals["sigmoid"](x)
+
+    def visitTanhAct(self, ctx):
+        x = self.visit(ctx.expr())
+        return self.globals["tanhAct"](x)
+
+    def visitSentimiento(self, ctx):
+        texto = self.visit(ctx.expr())
+        return self.globals["sentimiento"](texto)
+
+    def visitPredecirSerie(self, ctx):
+        lista = self.visit(ctx.expr())
+        return self.globals["predecirSerie"](lista)
+
+    def visitSimilitud(self, ctx):
+        a = self.visit(ctx.expr(0))
+        b = self.visit(ctx.expr(1))
+        return self.globals["similitud"](a, b)
+
+    def visitClasificarNumero(self, ctx):
+        segmentos = self.visit(ctx.expr())
+        return self.globals["clasificarNumero"](segmentos)
+    # =========================================================
+    # LITERALES
+    # =========================================================
 
     def visitNumero(self, ctx):
 
@@ -667,7 +702,9 @@ class TintoInterpreter(TintoVisitor):
 
         return ctx.STRING().getText().strip('"')
 
-    # ---------- MAIN ----------
+    # =========================================================
+    # MAIN
+    # =========================================================
 
     def main(self, input_file):
 
@@ -682,7 +719,6 @@ class TintoInterpreter(TintoVisitor):
         except Exception as e:
 
             print(f"Error de sintaxis: {e}")
-
             return
 
         try:
@@ -702,12 +738,10 @@ def main():
     if len(sys.argv) < 2:
 
         print("Uso: python interpreter.py <archivo.tinto>")
-
         sys.exit(1)
 
     TintoInterpreter().main(sys.argv[1])
 
 
 if __name__ == '__main__':
-
     main()
