@@ -9,7 +9,7 @@ statement: functionDeclaration
          | forStatement
          | returnStatement ';'
          | assignment ';'
-         | assignmentIndexed ';'          // lista[índice] = valor  o  dict[clave] = valor
+         | assignmentIndexed ';'
          | printStatement ';'
          | plotStatement ';'
          | functionCall ';'
@@ -17,7 +17,7 @@ statement: functionDeclaration
          ;
 
 variableDeclaration: tipo? ID '=' expr ;
-tipo: 'int' | 'float' | 'bool' | 'string' | 'matrix' | 'stack';   // se añadió 'stack'
+tipo: 'int' | 'float' | 'bool' | 'string' | 'matrix' | 'stack';
 assignment: ID '=' expr ;
 assignmentIndexed: ID '[' expr ']' '=' expr ;
 
@@ -43,6 +43,7 @@ parameters
 expr: <assoc=right> expr '^' expr                # Potencia
     | expr '[' expr ']'                          # Indexacion
     | expr op=('*'|'/'|'%') expr                 # MulDivMod
+    | '-' expr 				    # Negativo
     | expr op=('+'|'-') expr                     # SumaResta
     | expr op=('=='|'!='|'<'|'>'|'<='|'>=') expr # Comparacion
     | '!' expr                                   # Not
@@ -55,6 +56,28 @@ expr: <assoc=right> expr '^' expr                # Potencia
     | 'linearRegression' '(' expr ',' expr ')'   # RegLineal
     | 'logisticRegression' '(' expr ',' expr ')' # RegLogistica
     | 'perceptron' '(' expr ',' expr ',' expr ')'# Perceptron
+
+    // ── MACHINE LEARNING ──────────────────────────────────────────
+    | 'kNN' '(' expr ',' expr ',' expr ')'       # KNN
+    | 'kMeans' '(' expr ',' expr ')'             # KMeans
+    | 'normalizar' '(' expr ')'                  # Normalizar
+    | 'errorCuadratico' '(' expr ',' expr ')'    # ErrorCuadratico
+    | 'accuracy' '(' expr ',' expr ')'           # Accuracy
+
+    // ── DEEP LEARNING ─────────────────────────────────────────────
+    | 'crearRed' '(' expr ')'                    # CrearRed
+    | 'entrenar' '(' expr ',' expr ',' expr ',' expr ')' # Entrenar
+    | 'predecir' '(' expr ',' expr ')'           # Predecir
+    | 'relu' '(' expr ')'                        # Relu
+    | 'sigmoid' '(' expr ')'                     # Sigmoid
+    | 'tanhAct' '(' expr ')'                     # TanhAct
+
+    // ── IA PRE-ENTRENADA ──────────────────────────────────────────
+    | 'sentimiento' '(' expr ')'                 # Sentimiento
+    | 'predecirSerie' '(' expr ')'               # PredecirSerie
+    | 'similitud' '(' expr ',' expr ')'          # Similitud
+    | 'clasificarNumero' '(' expr ')'            # ClasificarNumero
+
     | 'stack' '(' ')'                            # StackCreation
     | lista                                      # ListaLiteral
     | diccionario                                # DiccionarioLiteral
@@ -82,3 +105,4 @@ STRING: '"' (~["\r\n])* '"' ;
 ID: [a-zA-Z_][a-zA-Z0-9_]* ;
 WS: [ \t\r\n]+ -> skip ;
 COMMENT: '//' ~[\r\n]* -> skip ;
+
